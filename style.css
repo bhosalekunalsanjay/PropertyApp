@@ -1,47 +1,313 @@
+/* ===== Reset & Base ===== */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Arial;
-    padding: 20px;
-    background: #f5f5f5;
-}
-
-h1 {
-    text-align: center;
-}
-
-.form-container {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    min-height: 100vh;
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+    flex-direction: column;
 }
 
-input {
-    padding: 8px;
-    width: 150px;
+/* ===== Header ===== */
+.app-header {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #fff;
+    padding: 2.5rem 1rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-button {
-    padding: 8px 12px;
+.header-content .logo {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.app-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.app-header .subtitle {
+    margin-top: 0.35rem;
+    font-size: 0.9rem;
+    opacity: 0.75;
+    font-weight: 400;
+}
+
+/* ===== Container ===== */
+.container {
+    max-width: 1100px;
+    width: 100%;
+    margin: -1.5rem auto 2rem;
+    padding: 0 1rem;
+    flex: 1;
+}
+
+/* ===== Cards ===== */
+.card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: #203a43;
+    border-bottom: 2px solid #e8ecf0;
+    padding-bottom: 0.65rem;
+}
+
+/* ===== Form ===== */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin-bottom: 0.35rem;
+}
+
+.input-group input {
+    padding: 0.65rem 0.85rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: #fafbfc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #2c5364;
+    box-shadow: 0 0 0 3px rgba(44, 83, 100, 0.12);
+    background: #fff;
+}
+
+.input-group input::placeholder {
+    color: #b0b7c3;
+}
+
+/* ===== Buttons ===== */
+.form-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.35rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.6rem 1.4rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
     cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2c5364, #203a43);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(44, 83, 100, 0.25);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #203a43, #0f2027);
+    box-shadow: 0 4px 14px rgba(44, 83, 100, 0.35);
+}
+
+.btn-secondary {
+    background: #e8ecf0;
+    color: #374151;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+}
+
+/* ===== Loader ===== */
+.loader {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: #6b7280;
+    display: none;
+}
+
+.loader.active {
+    display: block;
+}
+
+/* ===== Table ===== */
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
 }
 
-th, td {
-    padding: 10px;
-    border: 1px solid #ddd;
+thead th {
+    background: #203a43;
+    color: #fff;
+    padding: 0.8rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+thead th:first-child {
+    border-radius: 8px 0 0 0;
+}
+
+thead th:last-child {
+    border-radius: 0 8px 0 0;
     text-align: center;
 }
 
-button.edit {
-    background: orange;
+tbody tr {
+    transition: background 0.15s;
 }
 
-button.delete {
-    background: red;
-    color: white;
+tbody tr:nth-child(even) {
+    background: #f8f9fb;
+}
+
+tbody tr:hover {
+    background: #edf2f7;
+}
+
+tbody td {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+tbody td:last-child {
+    text-align: center;
+}
+
+/* Action buttons in table */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.85rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.12s;
+    margin: 0 0.2rem;
+}
+
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+.action-btn.edit {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.action-btn.edit:hover {
+    background: #fde68a;
+}
+
+.action-btn.delete {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.action-btn.delete:hover {
+    background: #fecaca;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: #9ca3af;
+    font-size: 0.95rem;
+}
+
+/* ===== Footer ===== */
+.app-footer {
+    text-align: center;
+    padding: 1.25rem 1rem;
+    font-size: 0.8rem;
+    color: #9ca3af;
+    border-top: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+    .app-header {
+        padding: 2rem 1rem 1.5rem;
+    }
+
+    .app-header h1 {
+        font-size: 1.35rem;
+    }
+
+    .card {
+        padding: 1.25rem 1rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        justify-content: center;
+    }
 }

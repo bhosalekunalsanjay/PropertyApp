@@ -1,50 +1,85 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Property Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>Property Manager</h1>
+  <header class="app-header">
+    <div class="header-content">
+      <span class="logo">&#127968;</span>
+      <h1>Property Manager</h1>
+      <p class="subtitle">Track and manage your real estate portfolio</p>
+    </div>
+  </header>
 
-  <!-- Form -->
+  <main class="container">
 
-  <div class="form-container">
-    <input type="hidden" id="propertyId">
+    <!-- Form Card -->
+    <section class="card form-card">
+      <h2 class="card-title" id="formTitle">Add New Property</h2>
+      <input type="hidden" id="propertyId">
+      <div class="form-grid">
+        <div class="input-group">
+          <label for="name">Property Name</label>
+          <input type="text" id="name" placeholder="e.g. Sunset Villa">
+        </div>
+        <div class="input-group">
+          <label for="address">Address</label>
+          <input type="text" id="address" placeholder="e.g. 123 Main St">
+        </div>
+        <div class="input-group">
+          <label for="price">Actual Price (₹)</label>
+          <input type="number" id="price" placeholder="e.g. 5000000">
+        </div>
+        <div class="input-group">
+          <label for="size">Size (sqft)</label>
+          <input type="number" id="size" placeholder="e.g. 1200">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveProperty()">&#10003; Save Property</button>
+        <button class="btn btn-secondary" onclick="resetForm()">&#10007; Clear</button>
+      </div>
+    </section>
 
+    <!-- Loading Indicator -->
+    <div id="loader" class="loader">Loading properties…</div>
 
-<input type="text" id="name" placeholder="Property Name">
-<input type="text" id="address" placeholder="Address">
-<input type="number" id="price" placeholder="Actual Price">
-<input type="number" id="size" placeholder="Size (sqft)">
+    <!-- Table Card -->
+    <section class="card table-card">
+      <h2 class="card-title">Your Properties</h2>
+      <div class="table-wrapper">
+        <table id="propertyTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Price</th>
+              <th>Size</th>
+              <th>Price/Sqft</th>
+              <th>Total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="emptyState" class="empty-state" style="display:none;">No properties found. Add one above!</p>
+    </section>
 
-<button onclick="saveProperty()">Save</button>
-<button onclick="resetForm()">Clear</button>
+  </main>
 
-
-  </div>
-
-  <!-- Table -->
-
-  <table id="propertyTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Address</th>
-        <th>Price</th>
-        <th>Size</th>
-        <th>Price/Sqft</th>
-        <th>Total</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <footer class="app-footer">
+    <p>&copy; 2025 Property Manager</p>
+  </footer>
 
   <script src="app.js"></script>
-
 </body>
 </html>
