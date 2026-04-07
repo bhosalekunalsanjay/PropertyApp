@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Property Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Property Manager</h1>
+
+  <!-- Form -->
+
+  <div class="form-container">
+    <input type="hidden" id="propertyId">
+
+
+<input type="text" id="name" placeholder="Property Name">
+<input type="text" id="address" placeholder="Address">
+<input type="number" id="price" placeholder="Actual Price">
+<input type="number" id="size" placeholder="Size (sqft)">
+
+<button onclick="saveProperty()">Save</button>
+<button onclick="resetForm()">Clear</button>
+
+
+  </div>
+
+  <!-- Table -->
+
+  <table id="propertyTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Price</th>
+        <th>Size</th>
+        <th>Price/Sqft</th>
+        <th>Total</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
