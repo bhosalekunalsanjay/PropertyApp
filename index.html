@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,10 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
-
   <header class="app-header">
     <div class="header-content">
       <span class="logo">&#127968;</span>
@@ -18,68 +17,125 @@
       <p class="subtitle">Track and manage your real estate portfolio</p>
     </div>
   </header>
-
   <main class="container">
-
-    <!-- Form Card -->
     <section class="card form-card">
       <h2 class="card-title" id="formTitle">Add New Property</h2>
-      <input type="hidden" id="propertyId">
       <div class="form-grid">
+        <div class="input-group" id="idGroup" style="display:none;">
+          <label for="propId">Property ID</label>
+          <input type="text" id="propId" readonly tabindex="-1">
+        </div>
         <div class="input-group">
-          <label for="name">Property Name</label>
+          <label for="name">Property Name *</label>
           <input type="text" id="name" placeholder="e.g. Sunset Villa">
         </div>
         <div class="input-group">
-          <label for="address">Address</label>
-          <input type="text" id="address" placeholder="e.g. 123 Main St">
+          <label for="address">Address *</label>
+          <input type="text" id="address" placeholder="e.g. 123 Main St, Mumbai">
         </div>
         <div class="input-group">
-          <label for="price">Actual Price (₹)</label>
-          <input type="number" id="price" placeholder="e.g. 5000000">
+          <label for="type">Type *</label>
+          <select id="type">
+            <option value="">-- Select --</option>
+            <option value="Apartment">Apartment</option>
+            <option value="Villa">Villa</option>
+            <option value="Plot">Plot</option>
+            <option value="Independent House">Independent House</option>
+            <option value="Penthouse">Penthouse</option>
+          </select>
         </div>
         <div class="input-group">
-          <label for="size">Size (sqft)</label>
-          <input type="number" id="size" placeholder="e.g. 1200">
+          <label for="price">Actual Price (Rs.) *</label>
+          <input type="number" id="price" min="0" placeholder="e.g. 5000000">
+        </div>
+        <div class="input-group">
+          <label for="size">Size (sqft) *</label>
+          <input type="number" id="size" min="1" placeholder="e.g. 1200">
+        </div>
+        <div class="input-group">
+          <label for="bedrooms">Bedrooms</label>
+          <input type="number" id="bedrooms" min="0" placeholder="e.g. 3">
+        </div>
+        <div class="input-group">
+          <label for="bathrooms">Bathrooms</label>
+          <input type="number" id="bathrooms" min="0" placeholder="e.g. 2">
+        </div>
+        <div class="input-group">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="Active">Active</option>
+            <option value="Sold">Sold</option>
+            <option value="Rented">Rented</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="furnishing">Furnishing</label>
+          <select id="furnishing">
+            <option value="Unfurnished">Unfurnished</option>
+            <option value="Semi-Furnished">Semi-Furnished</option>
+            <option value="Furnished">Furnished</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="availableFor">Available For</label>
+          <select id="availableFor">
+            <option value="Any">Any</option>
+            <option value="Family">Family</option>
+            <option value="Single Women">Single Women</option>
+            <option value="Single Men">Single Men</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="buildingAge">Building Age (years)</label>
+          <input type="number" id="buildingAge" min="0" placeholder="e.g. 5">
+        </div>
+        <div class="input-group">
+          <label for="purchaseDate">Purchase Date</label>
+          <input type="date" id="purchaseDate">
+        </div>
+        <div class="input-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="rera">
+            <span>RERA Approved</span>
+          </label>
+        </div>
+        <div class="input-group full-width">
+          <label for="notes">Notes</label>
+          <textarea id="notes" rows="2" placeholder="Any additional notes..."></textarea>
         </div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveProperty()">&#10003; Save Property</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveProperty()">&#10003; Save Property</button>
         <button class="btn btn-secondary" onclick="resetForm()">&#10007; Clear</button>
       </div>
     </section>
-
-    <!-- Loading Indicator -->
-    <div id="loader" class="loader">Loading properties…</div>
-
-    <!-- Table Card -->
+    <div id="loader" class="loader">Loading properties...</div>
     <section class="card table-card">
-      <h2 class="card-title">Your Properties</h2>
-      <div class="table-wrapper">
+      <div class="table-header-bar">
+        <h2 class="card-title">Your Properties</h2>
+        <div class="export-buttons">
+          <button class="btn btn-export" onclick="exportXlsx()">Export XLSX</button>
+          <button class="btn btn-export" onclick="exportPdf()">Export PDF</button>
+        </div>
+      </div>
+      <div class="table-scroll-wrapper">
         <table id="propertyTable">
           <thead>
-            <tr>
-              <th>Name</th>
-              <th>Address</th>
-              <th>Price</th>
-              <th>Size</th>
-              <th>Price/Sqft</th>
-              <th>Total</th>
-              <th>Actions</th>
-            </tr>
+            <tr class="header-row" id="headerRow"></tr>
+            <tr class="filter-row" id="filterRow"></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
       <p id="emptyState" class="empty-state" style="display:none;">No properties found. Add one above!</p>
     </section>
-
   </main>
-
   <footer class="app-footer">
-    <p>&copy; 2025 Property Manager</p>
+    <p>&#169; 2025 Property Manager</p>
   </footer>
-
-  <script src="app.js?v=2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

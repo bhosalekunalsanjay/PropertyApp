@@ -1,144 +1,387 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbzSo_nKeIp-nymJe6oZLuGT_lJoy0QHdYdBX6QefjM9CCi7e9iqRQlH-t3FmqcCaUr86A/exec";
+﻿const API_URL = "https://script.google.com/macros/s/AKfycbzSo_nKeIp-nymJe6oZLuGT_lJoy0QHdYdBX6QefjM9CCi7e9iqRQlH-t3FmqcCaUr86A/exec";
 
 let properties = [];
+let filtered = [];
+let sortField = '';
+let sortDir = 0;
+let columnFilters = {};
 
-// Load data on start
-window.onload = fetchProperties;
+const TABLE_COLS = [
+    { key: 'id',           label: 'ID' },
+    { key: 'name',         label: 'Name' },
+    { key: 'address',      label: 'Address' },
+    { key: 'type',         label: 'Type' },
+    { key: 'bedrooms',     label: 'Beds' },
+    { key: 'bathrooms',    label: 'Baths' },
+    { key: 'price',        label: 'Price' },
+    { key: 'size',         label: 'Size (sqft)' },
+    { key: 'pricePerSqft', label: 'Per Sqft' },
+    { key: 'total',        label: 'Total' },
+    { key: 'status',       label: 'Status' },
+    { key: 'furnishing',   label: 'Furnishing' },
+    { key: 'availableFor', label: 'Available For' },
+    { key: 'rera',         label: 'RERA' },
+    { key: 'buildingAge',  label: 'Age (yr)' },
+    { key: 'purchaseDate', label: 'Date' },
+    { key: 'notes',        label: 'Notes' }
+];
 
-// Format number as Indian currency
+window.onload = function () {
+    buildTableHeader();
+    fetchProperties();
+};
+
+function generateId() {
+    var ts = Date.now().toString(36).toUpperCase();
+    var rand = Math.random().toString(36).substring(2, 5).toUpperCase();
+    return 'PROP-' + ts + rand;
+}
+
 function formatCurrency(n) {
     return '\u20b9' + Number(n).toLocaleString('en-IN');
 }
 
-// Show / hide loader
-function showLoader(visible) {
-    const el = document.getElementById('loader');
-    el.classList.toggle('active', visible);
+function showLoader(v) {
+    document.getElementById('loader').classList.toggle('active', v);
 }
 
-// Fetch all properties
+function buildTableHeader() {
+    var headerRow = document.getElementById('headerRow');
+    var filterRow = document.getElementById('filterRow');
+
+    TABLE_COLS.forEach(function (col) {
+        var th = document.createElement('th');
+        th.dataset.sort = col.key;
+        th.textContent = col.label;
+        th.classList.add('sortable');
+        th.title = 'Click to sort';
+        th.addEventListener('click', function () { handleSort(col.key, th); });
+        var arrow = document.createElement('span');
+        arrow.className = 'sort-arrow';
+        arrow.textContent = ' \u21C5';
+        th.appendChild(arrow);
+        headerRow.appendChild(th);
+    });
+
+    var actTh = document.createElement('th');
+    actTh.textContent = 'Actions';
+    actTh.classList.add('actions-col');
+    headerRow.appendChild(actTh);
+
+    TABLE_COLS.forEach(function (col) {
+        var th = document.createElement('th');
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'col-filter';
+        input.placeholder = 'Filter...';
+        input.dataset.col = col.key;
+        input.addEventListener('input', function (e) {
+            columnFilters[col.key] = e.target.value.trim().toLowerCase();
+            applyFiltersAndSort();
+        });
+        th.appendChild(input);
+        filterRow.appendChild(th);
+    });
+
+    var emptyTh = document.createElement('th');
+    filterRow.appendChild(emptyTh);
+}
+
+function handleSort(key, thEl) {
+    document.querySelectorAll('#headerRow th').forEach(function (h) {
+        var a = h.querySelector('.sort-arrow');
+        if (a) a.textContent = ' \u21C5';
+        h.classList.remove('sort-asc', 'sort-desc');
+    });
+
+    if (sortField === key) {
+        if (sortDir === 1) { sortDir = -1; }
+        else { sortField = ''; sortDir = 0; }
+    } else {
+        sortField = key;
+        sortDir = 1;
+    }
+
+    var arrow = thEl.querySelector('.sort-arrow');
+    if (sortDir === 1) {
+        arrow.textContent = ' \u25B2';
+        thEl.classList.add('sort-asc');
+    } else if (sortDir === -1) {
+        arrow.textContent = ' \u25BC';
+        thEl.classList.add('sort-desc');
+    } else {
+        arrow.textContent = ' \u21C5';
+    }
+
+    applyFiltersAndSort();
+}
+
 async function fetchProperties() {
     showLoader(true);
-    const res = await fetch(API_URL);
-    const data = await res.json();
-
-    // skip header row
-    properties = data.slice(1).map(row => ({
-        id: row[0],
-        name: row[1],
-        address: row[2],
-        price: Number(row[3]),
-        size: Number(row[4]),
-        pricePerSqft: Number(row[5]),
-        total: Number(row[6])
-    }));
-
+    try {
+        var res = await fetch(API_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error();
+        var data = await res.json();
+        properties = data.slice(1).map(function (row) {
+            return {
+                id: row[0] || generateId(),
+                name: row[1] || '',
+                address: row[2] || '',
+                price: Number(row[3]) || 0,
+                size: Number(row[4]) || 0,
+                pricePerSqft: Number(row[5]) || 0,
+                total: Number(row[6]) || 0,
+                type: row[7] || '',
+                bedrooms: Number(row[8]) || 0,
+                bathrooms: Number(row[9]) || 0,
+                status: row[10] || 'Active',
+                furnishing: row[11] || 'Unfurnished',
+                availableFor: row[12] || 'Any',
+                rera: row[13] === true || row[13] === 'Yes',
+                buildingAge: Number(row[14]) || 0,
+                purchaseDate: row[15] || '',
+                notes: row[16] || ''
+            };
+        });
+        localStorage.setItem('properties', JSON.stringify(properties));
+    } catch (e) {
+        properties = JSON.parse(localStorage.getItem('properties') || '[]');
+    }
     showLoader(false);
+    applyFiltersAndSort();
+}
+
+function applyFiltersAndSort() {
+    filtered = properties.filter(function (p) {
+        return TABLE_COLS.every(function (col) {
+            var q = columnFilters[col.key];
+            if (!q) return true;
+            var val = p[col.key];
+            if (col.key === 'rera') val = val ? 'Yes' : 'No';
+            return String(val).toLowerCase().includes(q);
+        });
+    });
+
+    if (sortField && sortDir !== 0) {
+        filtered.sort(function (a, b) {
+            var va = a[sortField];
+            var vb = b[sortField];
+            if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
+            if (typeof va === 'boolean') { va = va ? 1 : 0; vb = vb ? 1 : 0; }
+            if (va > vb) return sortDir;
+            if (va < vb) return -sortDir;
+            return 0;
+        });
+    }
+
     renderTable();
 }
 
-// Render table
 function renderTable() {
-    const tbody = document.querySelector("#propertyTable tbody");
-    const table = document.getElementById("propertyTable");
-    const empty = document.getElementById("emptyState");
-    tbody.innerHTML = "";
+    var tbody = document.querySelector('#propertyTable tbody');
+    var table = document.getElementById('propertyTable');
+    var empty = document.getElementById('emptyState');
+    tbody.innerHTML = '';
 
-    if (properties.length === 0) {
-        table.style.display = "none";
-        empty.style.display = "block";
+    if (filtered.length === 0) {
+        table.style.display = 'none';
+        empty.style.display = 'block';
         return;
     }
+    table.style.display = 'table';
+    empty.style.display = 'none';
 
-    table.style.display = "table";
-    empty.style.display = "none";
+    filtered.forEach(function (p) {
+        var tr = document.createElement('tr');
+        TABLE_COLS.forEach(function (col) {
+            var td = document.createElement('td');
+            switch (col.key) {
+                case 'price':
+                case 'total':
+                    td.textContent = formatCurrency(p[col.key]);
+                    break;
+                case 'pricePerSqft':
+                    td.textContent = formatCurrency(Math.round(p[col.key])) + '/sqft';
+                    break;
+                case 'size':
+                    td.textContent = Number(p[col.key]).toLocaleString('en-IN') + ' sqft';
+                    break;
+                case 'rera':
+                    td.textContent = p[col.key] ? 'Yes' : 'No';
+                    break;
+                case 'status':
+                    var span = document.createElement('span');
+                    span.className = 'status-badge status-' + p.status.toLowerCase();
+                    span.textContent = p.status;
+                    td.appendChild(span);
+                    break;
+                default:
+                    td.textContent = p[col.key] != null ? p[col.key] : '';
+            }
+            tr.appendChild(td);
+        });
 
-    properties.forEach(p => {
-        const row = `<tr>
-            <td>${p.name}</td>
-            <td>${p.address}</td>
-            <td>${formatCurrency(p.price)}</td>
-            <td>${Number(p.size).toLocaleString('en-IN')} sqft</td>
-            <td>${formatCurrency(p.pricePerSqft.toFixed(0))}</td>
-            <td>${formatCurrency(p.total)}</td>
-            <td>
-                <button class="action-btn edit" onclick="editProperty('${p.id}')">&#9998; Edit</button>
-                <button class="action-btn delete" onclick="deleteProperty('${p.id}')">&#128465; Delete</button>
-            </td>
-        </tr>`;
-        tbody.innerHTML += row;
+        var actTd = document.createElement('td');
+        actTd.classList.add('actions-cell');
+        var editBtn = document.createElement('button');
+        editBtn.className = 'action-btn edit';
+        editBtn.innerHTML = '&#9998; Edit';
+        editBtn.onclick = (function (id) { return function () { editProperty(id); }; })(p.id);
+        var delBtn = document.createElement('button');
+        delBtn.className = 'action-btn delete';
+        delBtn.innerHTML = '&#128465; Delete';
+        delBtn.onclick = (function (id) { return function () { deleteProperty(id); }; })(p.id);
+        actTd.appendChild(editBtn);
+        actTd.appendChild(delBtn);
+        tr.appendChild(actTd);
+
+        tbody.appendChild(tr);
     });
 }
 
-// Save (Add / Update)
 async function saveProperty() {
-    const id = document.getElementById("propertyId").value || Date.now().toString();
-    const name = document.getElementById("name").value;
-    const address = document.getElementById("address").value;
-    const price = Number(document.getElementById("price").value);
-    const size = Number(document.getElementById("size").value);
+    var existingId = document.getElementById('propId').value;
+    var id = existingId || generateId();
+    var name = document.getElementById('name').value.trim();
+    var address = document.getElementById('address').value.trim();
+    var type = document.getElementById('type').value;
+    var price = Number(document.getElementById('price').value);
+    var size = Number(document.getElementById('size').value);
+    var bedrooms = Number(document.getElementById('bedrooms').value) || 0;
+    var bathrooms = Number(document.getElementById('bathrooms').value) || 0;
+    var status = document.getElementById('status').value;
+    var furnishing = document.getElementById('furnishing').value;
+    var availableFor = document.getElementById('availableFor').value;
+    var rera = document.getElementById('rera').checked;
+    var buildingAge = Number(document.getElementById('buildingAge').value) || 0;
+    var purchaseDate = document.getElementById('purchaseDate').value;
+    var notes = document.getElementById('notes').value.trim();
 
-    if (!name || !address || !price || !size) {
-        alert("Please fill in all fields.");
+    if (!name || !address || !type) {
+        alert('Please fill in Name, Address, and Type.');
         return;
     }
+    if (price < 0) { alert('Price must be >= 0.'); return; }
+    if (!size || size <= 0) { alert('Size must be > 0.'); return; }
 
-    const pricePerSqft = price / size;
-    const total = price;
+    var pricePerSqft = price / size;
+    var total = price;
 
-    const payload = {
-        id,
-        name,
-        address,
-        price,
-        size,
-        pricePerSqft,
-        total
+    var payload = {
+        id: id, name: name, address: address, type: type,
+        bedrooms: bedrooms, bathrooms: bathrooms,
+        price: price, size: size, pricePerSqft: pricePerSqft, total: total,
+        status: status, furnishing: furnishing, availableFor: availableFor,
+        rera: rera, buildingAge: buildingAge, purchaseDate: purchaseDate, notes: notes
     };
 
-    await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-    });
+    try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); } catch (e) { }
 
+    var idx = properties.findIndex(function (x) { return x.id === id; });
+    if (idx >= 0) properties[idx] = payload;
+    else properties.push(payload);
+
+    localStorage.setItem('properties', JSON.stringify(properties));
     resetForm();
-    fetchProperties();
+    applyFiltersAndSort();
 }
 
-// Edit
 function editProperty(id) {
-    const p = properties.find(x => x.id == id);
+    var p = properties.find(function (x) { return x.id === id; });
+    if (!p) return;
 
-    document.getElementById("propertyId").value = p.id;
-    document.getElementById("name").value = p.name;
-    document.getElementById("address").value = p.address;
-    document.getElementById("price").value = p.price;
-    document.getElementById("size").value = p.size;
+    document.getElementById('idGroup').style.display = '';
+    document.getElementById('propId').value = p.id;
+    document.getElementById('name').value = p.name;
+    document.getElementById('address').value = p.address;
+    document.getElementById('type').value = p.type || '';
+    document.getElementById('price').value = p.price;
+    document.getElementById('size').value = p.size;
+    document.getElementById('bedrooms').value = p.bedrooms || '';
+    document.getElementById('bathrooms').value = p.bathrooms || '';
+    document.getElementById('status').value = p.status || 'Active';
+    document.getElementById('furnishing').value = p.furnishing || 'Unfurnished';
+    document.getElementById('availableFor').value = p.availableFor || 'Any';
+    document.getElementById('rera').checked = !!p.rera;
+    document.getElementById('buildingAge').value = p.buildingAge || '';
+    document.getElementById('purchaseDate').value = p.purchaseDate || '';
+    document.getElementById('notes').value = p.notes || '';
 
-    document.getElementById("formTitle").textContent = "Edit Property";
-    document.querySelector(".btn-primary").innerHTML = "&#10003; Update Property";
-    document.querySelector(".form-card").scrollIntoView({ behavior: "smooth" });
+    document.getElementById('formTitle').textContent = 'Edit Property';
+    document.getElementById('saveBtn').innerHTML = '&#10003; Update Property';
+    document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Delete
 async function deleteProperty(id) {
-    if (!confirm("Are you sure you want to delete this property?")) return;
-
-    await fetch(API_URL, {
-        method: "DELETE",
-        body: JSON.stringify({ id })
-    });
-
-    fetchProperties();
+    if (!confirm('Are you sure you want to delete this property?')) return;
+    try { await fetch(API_URL, { method: 'DELETE', body: JSON.stringify({ id: id }) }); } catch (e) { }
+    properties = properties.filter(function (p) { return p.id !== id; });
+    localStorage.setItem('properties', JSON.stringify(properties));
+    applyFiltersAndSort();
 }
 
-// Reset form
 function resetForm() {
-    document.getElementById("propertyId").value = "";
-    document.getElementById("name").value = "";
-    document.getElementById("address").value = "";
-    document.getElementById("price").value = "";
-    document.getElementById("size").value = "";
-    document.getElementById("formTitle").textContent = "Add New Property";
-    document.querySelector(".btn-primary").innerHTML = "&#10003; Save Property";
+    document.getElementById('idGroup').style.display = 'none';
+    document.getElementById('propId').value = '';
+    document.getElementById('name').value = '';
+    document.getElementById('address').value = '';
+    document.getElementById('type').value = '';
+    document.getElementById('price').value = '';
+    document.getElementById('size').value = '';
+    document.getElementById('bedrooms').value = '';
+    document.getElementById('bathrooms').value = '';
+    document.getElementById('status').value = 'Active';
+    document.getElementById('furnishing').value = 'Unfurnished';
+    document.getElementById('availableFor').value = 'Any';
+    document.getElementById('rera').checked = false;
+    document.getElementById('buildingAge').value = '';
+    document.getElementById('purchaseDate').value = '';
+    document.getElementById('notes').value = '';
+    document.getElementById('formTitle').textContent = 'Add New Property';
+    document.getElementById('saveBtn').innerHTML = '&#10003; Save Property';
+}
+
+function getExportData() {
+    var headers = TABLE_COLS.map(function (c) { return c.label; });
+    var rows = filtered.map(function (p) {
+        return TABLE_COLS.map(function (c) {
+            if (c.key === 'rera') return p[c.key] ? 'Yes' : 'No';
+            return p[c.key] != null ? p[c.key] : '';
+        });
+    });
+    return { headers: headers, rows: rows };
+}
+
+function exportXlsx() {
+    if (!filtered.length) { alert('No data to export.'); return; }
+    var d = getExportData();
+    var ws = XLSX.utils.aoa_to_sheet([d.headers].concat(d.rows));
+    ws['!cols'] = d.headers.map(function (h, i) {
+        var max = Math.max(h.length, Math.max.apply(null, d.rows.map(function (r) { return String(r[i]).length; })));
+        return { wch: Math.min(max + 2, 30) };
+    });
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Properties');
+    XLSX.writeFile(wb, 'properties_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+}
+
+function exportPdf() {
+    if (!filtered.length) { alert('No data to export.'); return; }
+    var d = getExportData();
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a3' });
+    doc.setFontSize(16);
+    doc.text('Property Manager - Export', 14, 15);
+    doc.setFontSize(9);
+    doc.text('Generated: ' + new Date().toLocaleString('en-IN'), 14, 21);
+    doc.autoTable({
+        head: [d.headers],
+        body: d.rows,
+        startY: 26,
+        styles: { fontSize: 7, cellPadding: 2 },
+        headStyles: { fillColor: [32, 58, 67], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 249, 251] },
+        margin: { left: 10, right: 10 }
+    });
+    doc.save('properties_' + new Date().toISOString().slice(0, 10) + '.pdf');
 }
