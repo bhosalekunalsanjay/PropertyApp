@@ -11,6 +11,8 @@ const TABLE_COLS = [
     { key: 'name',         label: 'Name' },
     { key: 'address',      label: 'Address' },
     { key: 'type',         label: 'Type' },
+    { key: 'category',     label: 'Category' },
+    { key: 'listingType',  label: 'Listing' },
     { key: 'bedrooms',     label: 'Beds' },
     { key: 'bathrooms',    label: 'Baths' },
     { key: 'price',        label: 'Price' },
@@ -23,8 +25,28 @@ const TABLE_COLS = [
     { key: 'rera',         label: 'RERA' },
     { key: 'buildingAge',  label: 'Age (yr)' },
     { key: 'purchaseDate', label: 'Date' },
+    { key: 'ownerPhone',   label: 'Owner Phone' },
     { key: 'notes',        label: 'Notes' }
 ];
+
+// Defines what kind of filter control to use per column
+const COL_FILTER_TYPE = {
+    type:         { kind: 'select', options: ['', 'Apartment', 'Villa', 'Plot', 'Independent House', 'Penthouse'] },
+    category:     { kind: 'select', options: ['', 'Residential', 'Commercial', 'Industrial', 'Mixed Use'] },
+    listingType:  { kind: 'select', options: ['', 'For Sale', 'For Rent'] },
+    status:       { kind: 'select', options: ['', 'Available', 'Sold', 'Rented'] },
+    furnishing:   { kind: 'select', options: ['', 'Unfurnished', 'Semi-Furnished', 'Furnished'] },
+    availableFor: { kind: 'select', options: ['', 'Any', 'Family', 'Single Women', 'Single Men'] },
+    rera:         { kind: 'select', options: ['', 'Yes', 'No'] },
+    bedrooms:     { kind: 'number' },
+    bathrooms:    { kind: 'number' },
+    price:        { kind: 'number' },
+    size:         { kind: 'number' },
+    pricePerSqft: { kind: 'number' },
+    total:        { kind: 'number' },
+    buildingAge:  { kind: 'number' },
+    purchaseDate: { kind: 'date' }
+};
 
 window.onload = function () {
     buildTableHeader();
@@ -70,16 +92,52 @@ function buildTableHeader() {
 
     TABLE_COLS.forEach(function (col) {
         var th = document.createElement('th');
-        var input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'col-filter';
-        input.placeholder = 'Filter...';
-        input.dataset.col = col.key;
-        input.addEventListener('input', function (e) {
-            columnFilters[col.key] = e.target.value.trim().toLowerCase();
-            applyFiltersAndSort();
-        });
-        th.appendChild(input);
+        var ft = COL_FILTER_TYPE[col.key];
+        var ctrl;
+
+        if (ft && ft.kind === 'select') {
+            ctrl = document.createElement('select');
+            ctrl.className = 'col-filter col-filter-select';
+            ft.options.forEach(function (opt) {
+                var o = document.createElement('option');
+                o.value = opt;
+                o.textContent = opt === '' ? 'All' : opt;
+                ctrl.appendChild(o);
+            });
+            ctrl.addEventListener('change', function (e) {
+                columnFilters[col.key] = e.target.value.trim().toLowerCase();
+                applyFiltersAndSort();
+            });
+        } else if (ft && ft.kind === 'number') {
+            ctrl = document.createElement('input');
+            ctrl.type = 'number';
+            ctrl.className = 'col-filter';
+            ctrl.placeholder = 'Filter...';
+            ctrl.addEventListener('input', function (e) {
+                columnFilters[col.key] = e.target.value.trim();
+                applyFiltersAndSort();
+            });
+        } else if (ft && ft.kind === 'date') {
+            ctrl = document.createElement('input');
+            ctrl.type = 'date';
+            ctrl.className = 'col-filter';
+            ctrl.addEventListener('input', function (e) {
+                columnFilters[col.key] = e.target.value.trim();
+                applyFiltersAndSort();
+            });
+        } else {
+            ctrl = document.createElement('input');
+            ctrl.type = 'text';
+            ctrl.className = 'col-filter';
+            ctrl.placeholder = 'Filter...';
+            ctrl.addEventListener('input', function (e) {
+                columnFilters[col.key] = e.target.value.trim().toLowerCase();
+                applyFiltersAndSort();
+            });
+        }
+
+        ctrl.dataset.col = col.key;
+        th.appendChild(ctrl);
         filterRow.appendChild(th);
     });
 
@@ -124,23 +182,26 @@ async function fetchProperties() {
         var data = await res.json();
         properties = data.slice(1).map(function (row) {
             return {
-                id: row[0] || generateId(),
-                name: row[1] || '',
-                address: row[2] || '',
-                price: Number(row[3]) || 0,
-                size: Number(row[4]) || 0,
-                pricePerSqft: Number(row[5]) || 0,
-                total: Number(row[6]) || 0,
-                type: row[7] || '',
-                bedrooms: Number(row[8]) || 0,
-                bathrooms: Number(row[9]) || 0,
-                status: row[10] || 'Active',
-                furnishing: row[11] || 'Unfurnished',
+                id:           row[0]  || generateId(),
+                name:         row[1]  || '',
+                address:      row[2]  || '',
+                price:        Number(row[3])  || 0,
+                size:         Number(row[4])  || 0,
+                pricePerSqft: Number(row[5])  || 0,
+                total:        Number(row[6])  || 0,
+                type:         row[7]  || '',
+                bedrooms:     Number(row[8])  || 0,
+                bathrooms:    Number(row[9])  || 0,
+                status:       row[10] || 'Available',
+                furnishing:   row[11] || 'Unfurnished',
                 availableFor: row[12] || 'Any',
-                rera: row[13] === true || row[13] === 'Yes',
-                buildingAge: Number(row[14]) || 0,
+                rera:         row[13] === true || row[13] === 'Yes',
+                buildingAge:  Number(row[14]) || 0,
                 purchaseDate: row[15] || '',
-                notes: row[16] || ''
+                notes:        row[16] || '',
+                ownerPhone:   row[17] || '',
+                listingType:  row[18] || '',
+                category:     row[19] || ''
             };
         });
         localStorage.setItem('properties', JSON.stringify(properties));
@@ -155,10 +216,24 @@ function applyFiltersAndSort() {
     filtered = properties.filter(function (p) {
         return TABLE_COLS.every(function (col) {
             var q = columnFilters[col.key];
-            if (!q) return true;
+            if (q === undefined || q === null || q === '') return true;
+
             var val = p[col.key];
-            if (col.key === 'rera') val = val ? 'Yes' : 'No';
-            return String(val).toLowerCase().includes(q);
+            if (col.key === 'rera') val = val ? 'yes' : 'no';
+            var valStr = String(val == null ? '' : val).toLowerCase();
+            var ft = COL_FILTER_TYPE[col.key];
+
+            if (ft && ft.kind === 'select') {
+                return valStr === q.toLowerCase();
+            }
+            if (ft && ft.kind === 'number') {
+                return valStr.includes(String(q));
+            }
+            if (ft && ft.kind === 'date') {
+                return valStr === q;
+            }
+            // text: case-insensitive contains
+            return valStr.includes(q.toLowerCase());
         });
     });
 
@@ -181,15 +256,23 @@ function renderTable() {
     var tbody = document.querySelector('#propertyTable tbody');
     var table = document.getElementById('propertyTable');
     var empty = document.getElementById('emptyState');
-    tbody.innerHTML = '';
 
-    if (filtered.length === 0) {
-        table.style.display = 'none';
-        empty.style.display = 'block';
-        return;
-    }
+    tbody.innerHTML = '';
     table.style.display = 'table';
     empty.style.display = 'none';
+
+    if (filtered.length === 0) {
+        var noDataTr = document.createElement('tr');
+        var noDataTd = document.createElement('td');
+        noDataTd.colSpan = TABLE_COLS.length + 1;
+        noDataTd.className = 'no-data-row';
+        noDataTd.textContent = properties.length === 0
+            ? 'No properties added yet. Use the form above to add one!'
+            : 'No matching properties found. Try adjusting your filters.';
+        noDataTr.appendChild(noDataTd);
+        tbody.appendChild(noDataTr);
+        return;
+    }
 
     filtered.forEach(function (p) {
         var tr = document.createElement('tr');
@@ -211,7 +294,7 @@ function renderTable() {
                     break;
                 case 'status':
                     var span = document.createElement('span');
-                    span.className = 'status-badge status-' + p.status.toLowerCase();
+                    span.className = 'status-badge status-' + p.status.toLowerCase().replace(/\s+/g, '-');
                     span.textContent = p.status;
                     td.appendChild(span);
                     break;
@@ -245,6 +328,8 @@ async function saveProperty() {
     var name = document.getElementById('name').value.trim();
     var address = document.getElementById('address').value.trim();
     var type = document.getElementById('type').value;
+    var category = document.getElementById('category').value;
+    var listingType = document.getElementById('listingType').value;
     var price = Number(document.getElementById('price').value);
     var size = Number(document.getElementById('size').value);
     var bedrooms = Number(document.getElementById('bedrooms').value) || 0;
@@ -255,6 +340,7 @@ async function saveProperty() {
     var rera = document.getElementById('rera').checked;
     var buildingAge = Number(document.getElementById('buildingAge').value) || 0;
     var purchaseDate = document.getElementById('purchaseDate').value;
+    var ownerPhone = document.getElementById('ownerPhone').value.trim();
     var notes = document.getElementById('notes').value.trim();
 
     if (!name || !address || !type) {
@@ -269,10 +355,12 @@ async function saveProperty() {
 
     var payload = {
         id: id, name: name, address: address, type: type,
+        category: category, listingType: listingType,
         bedrooms: bedrooms, bathrooms: bathrooms,
         price: price, size: size, pricePerSqft: pricePerSqft, total: total,
         status: status, furnishing: furnishing, availableFor: availableFor,
-        rera: rera, buildingAge: buildingAge, purchaseDate: purchaseDate, notes: notes
+        rera: rera, buildingAge: buildingAge, purchaseDate: purchaseDate,
+        ownerPhone: ownerPhone, notes: notes
     };
 
     try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); } catch (e) { }
@@ -295,16 +383,19 @@ function editProperty(id) {
     document.getElementById('name').value = p.name;
     document.getElementById('address').value = p.address;
     document.getElementById('type').value = p.type || '';
+    document.getElementById('category').value = p.category || '';
+    document.getElementById('listingType').value = p.listingType || '';
     document.getElementById('price').value = p.price;
     document.getElementById('size').value = p.size;
     document.getElementById('bedrooms').value = p.bedrooms || '';
     document.getElementById('bathrooms').value = p.bathrooms || '';
-    document.getElementById('status').value = p.status || 'Active';
+    document.getElementById('status').value = p.status || 'Available';
     document.getElementById('furnishing').value = p.furnishing || 'Unfurnished';
     document.getElementById('availableFor').value = p.availableFor || 'Any';
     document.getElementById('rera').checked = !!p.rera;
     document.getElementById('buildingAge').value = p.buildingAge || '';
     document.getElementById('purchaseDate').value = p.purchaseDate || '';
+    document.getElementById('ownerPhone').value = p.ownerPhone || '';
     document.getElementById('notes').value = p.notes || '';
 
     document.getElementById('formTitle').textContent = 'Edit Property';
@@ -326,16 +417,19 @@ function resetForm() {
     document.getElementById('name').value = '';
     document.getElementById('address').value = '';
     document.getElementById('type').value = '';
+    document.getElementById('category').value = '';
+    document.getElementById('listingType').value = '';
     document.getElementById('price').value = '';
     document.getElementById('size').value = '';
     document.getElementById('bedrooms').value = '';
     document.getElementById('bathrooms').value = '';
-    document.getElementById('status').value = 'Active';
+    document.getElementById('status').value = 'Available';
     document.getElementById('furnishing').value = 'Unfurnished';
     document.getElementById('availableFor').value = 'Any';
     document.getElementById('rera').checked = false;
     document.getElementById('buildingAge').value = '';
     document.getElementById('purchaseDate').value = '';
+    document.getElementById('ownerPhone').value = '';
     document.getElementById('notes').value = '';
     document.getElementById('formTitle').textContent = 'Add New Property';
     document.getElementById('saveBtn').innerHTML = '&#10003; Save Property';

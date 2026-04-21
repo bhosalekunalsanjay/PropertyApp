@@ -328,6 +328,20 @@ thead th.sort-desc .sort-arrow {
     color: #b0b7c3;
 }
 
+.col-filter-select {
+    cursor: pointer;
+    padding-right: 0.3rem;
+}
+
+.no-data-row {
+    text-align: center;
+    padding: 2rem 1rem !important;
+    color: #6b7280;
+    font-style: italic;
+    font-size: 0.9rem;
+    background: #f9fafb;
+}
+
 tbody tr {
     transition: background 0.15s;
 }
@@ -361,6 +375,11 @@ tbody td {
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.3px;
+}
+
+.status-available {
+    background: #dcfce7;
+    color: #166534;
 }
 
 .status-active {

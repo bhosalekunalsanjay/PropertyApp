@@ -45,6 +45,24 @@
           </select>
         </div>
         <div class="input-group">
+          <label for="category">Category *</label>
+          <select id="category">
+            <option value="">-- Select --</option>
+            <option value="Residential">Residential</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Industrial">Industrial</option>
+            <option value="Mixed Use">Mixed Use</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="listingType">Listing Type</label>
+          <select id="listingType">
+            <option value="">-- Select --</option>
+            <option value="For Sale">For Sale</option>
+            <option value="For Rent">For Rent</option>
+          </select>
+        </div>
+        <div class="input-group">
           <label for="price">Actual Price (Rs.) *</label>
           <input type="number" id="price" min="0" placeholder="e.g. 5000000">
         </div>
@@ -63,7 +81,7 @@
         <div class="input-group">
           <label for="status">Status</label>
           <select id="status">
-            <option value="Active">Active</option>
+            <option value="Available">Available</option>
             <option value="Sold">Sold</option>
             <option value="Rented">Rented</option>
           </select>
@@ -92,6 +110,10 @@
         <div class="input-group">
           <label for="purchaseDate">Purchase Date</label>
           <input type="date" id="purchaseDate">
+        </div>
+        <div class="input-group">
+          <label for="ownerPhone">Owner Phone</label>
+          <input type="tel" id="ownerPhone" placeholder="e.g. +91 98765 43210">
         </div>
         <div class="input-group checkbox-group">
           <label class="checkbox-label">
